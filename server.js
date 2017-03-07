@@ -41,15 +41,19 @@ function requestDom(url, brandId, keyword) {
         parent.find('ul').children().each(function (idx, element) {
           var ulElement = $(this);
           var imgElement = ulElement.find('img');
+          var link = ulElement.find('a');
           var name = ulElement.find("span").text();
           var description = imgElement.attr('title');
           var imageUrl = imgElement.attr('src');
+          var href = link.attr("href");
+          var orderId = href.split(".")[0].split("-")[1];
           var jsonObject = {
             name: name,
             description: description,
             imageurl: imageUrl,
             brandId: brandId,
-            keyword: keyword
+            keyword: keyword,
+            orderId: orderId
           }
           post(jsonObject);
         });
