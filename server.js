@@ -16,9 +16,9 @@ app.get('/test', function (req, res) {
   res.send('aman');
 });
 
-function post(payload) {
+function post(payload, url) {
   superagent
-    .post('http://52.221.230.61:9000/api/items')
+    .post(url)
     .send(payload)
     .set('Accept', 'application/json')
     .end(function (err) {
@@ -32,7 +32,7 @@ function post(payload) {
     });
 }
 
-function requestDom(url, brandId, keyword) {
+function requestProductDom(url, brandId, keyword) {
   request(url, function (error, response, html) {
     if (!error) {
       var $ = cheerio.load(html);
@@ -51,18 +51,19 @@ function requestDom(url, brandId, keyword) {
             name: name,
             description: description,
             imageurl: imageUrl,
+            detailurl: href,
             brandId: brandId,
             keyword: keyword,
             orderId: orderId
           }
-          post(jsonObject);
+          post(jsonObject, 'http://52.221.230.61:9000/api/items');
         });
       });
     }
   });
 }
 
-app.get('/scrape', function (req, res) {
+app.get('/scrapeProduct', function (req, res) {
   var brandNames = Object.keys(urls);
   for (var brandName of brandNames) {
     var metaBrand = urls[brandName];
@@ -74,11 +75,36 @@ app.get('/scrape', function (req, res) {
         var brandUrl = metaBrand.NEXT.replace("{0}", i);
         url = `http://www.gsmarena.com/${brandUrl}`;
       }
-      requestDom(url, metaBrand.BRAND_ID, metaBrand.KEYWORD);
+      requestProductDom(url, metaBrand.BRAND_ID, metaBrand.KEYWORD);
     }
   }
   res.send('Check your console!');
-})
+});
+
+app.get('/scrapeBrand', function (req, res) {
+  var url = "http://www.gsmarena.com/makers.php3";
+  request(url, function (error, response, html) {
+    if (!error) {
+      var $ = cheerio.load(html);
+      $('.st-text').filter(function () {
+        var parent = $("table");
+        parent.find('td').each(function (idx, element) {
+          console.log($(this).find("a").text());
+          var element = $(this);
+          var a = element.find("a").html().split("<br>");
+          var title = a[0];
+          var totalDevices = $(a[1]).text().split(" ")[0];
+          var jsonObject = {
+            title: title,
+            totalProducts: parseInt(totalDevices, 10)
+          }
+          post(jsonObject, 'http://52.221.230.61:9000/api/brands');
+        });
+      });
+    }
+  });
+  res.send('Check your console!');
+});
 
 app.listen('8081')
 console.log('Magic happens on port 8081');
