@@ -54,7 +54,9 @@ function requestProductDom(url, brandId, keyword) {
             detailurl: href,
             brandId: brandId,
             keyword: keyword,
-            orderId: orderId
+            orderId: parseInt(orderId),
+            createdDate: new Date(),
+            updatedDate: new Date()
           }
           post(jsonObject, 'http://52.221.230.61:9000/api/items');
         });
