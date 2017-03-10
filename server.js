@@ -1,20 +1,11 @@
 var express = require('express');
 var superagent = require('superagent');
+var axios = require('axios');
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var urls = require('./constants');
 var app = express();
-
-app.get('/test', function (req, res) {
-  var brands = Object.keys(urls);
-  for (var brand of brands) {
-    if (urls[brand].NEXT) {
-      console.log(urls[brand].NEXT.replace("{0}", "test"));
-    }
-  }
-  res.send('aman');
-});
 
 function post(payload, url) {
   superagent
@@ -23,11 +14,12 @@ function post(payload, url) {
     .set('Accept', 'application/json')
     .end(function (err) {
       if (err) {
-        console.log(`error on saving ${payload.name}`);
-        console.log("Retrying...");
-        post(payload);
+        // console.log(`error on saving ${payload.name}`);
+        // console.log("Retrying...");
+        // console.log(payload);
+        post(payload, url);
       } else {
-        console.log(`${payload.name} successfully saved`);
+        // console.log(`${payload.name} successfully saved`);
       }
     });
 }
@@ -64,20 +56,28 @@ function requestProductDom(url, brandId, keyword) {
 }
 
 app.get('/scrapeProduct', function (req, res) {
-  var brandNames = Object.keys(urls);
-  for (var brandName of brandNames) {
-    var metaBrand = urls[brandName];
-    var url;
-    for (var i = 1; i <= metaBrand.TOTAL_PAGE; i++) {
-      if (i === 1) {
-        url = `http://www.gsmarena.com/${metaBrand.FIRST}`;
-      } else {
-        var brandUrl = metaBrand.NEXT.replace("{0}", i);
-        url = `http://www.gsmarena.com/${brandUrl}`;
+  var brandsUrl = "http://52.221.230.61:9000/api/brands";
+  axios.get(brandsUrl)
+    .then(function (response) {
+      var brands = response.data;
+      for (var brand of brands) {
+        var url;
+        console.log(brand);
+        for (var i = 1; i <= brand.totalPage; i++) {
+          if (i === 1) {
+            url = `http://www.gsmarena.com/${brand.firstUrl}`;
+          } else {
+            var nextUrl = brand.nextUrl.replace("{0}", i);
+            url = `http://www.gsmarena.com/${nextUrl}`;
+          }
+          requestProductDom(url, brand.id, brand.title.toLowerCase());
+        }
       }
-      requestProductDom(url, metaBrand.BRAND_ID, metaBrand.KEYWORD);
-    }
-  }
+    })
+    .catch(function (error) {
+      console.log("error on requesting data");
+      console.log(error);
+    });
   res.send('Check your console!');
 });
 
@@ -103,6 +103,11 @@ app.get('/scrapeBrand', function (req, res) {
       });
     }
   });
+  res.send('Check your console!');
+});
+
+app.get('/test', function (req, res) {
+  get('http://52.221.230.61:9000/api/brands');
   res.send('Check your console!');
 });
 
