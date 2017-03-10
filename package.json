@@ -4,6 +4,7 @@
   "description": "Scrape le web.",
   "main": "server.js",
   "author": "Scotch",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/scotch-io/node-web-scraper"

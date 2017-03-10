@@ -14,12 +14,12 @@ function post(payload, url) {
     .set('Accept', 'application/json')
     .end(function (err) {
       if (err) {
-        // console.log(`error on saving ${payload.name}`);
-        // console.log("Retrying...");
-        // console.log(payload);
+        console.log(`error on saving ${payload.name}`);
+        console.log("Retrying...");
+        console.log(payload);
         post(payload, url);
       } else {
-        // console.log(`${payload.name} successfully saved`);
+        console.log(`${payload.name} successfully saved`);
       }
     });
 }
